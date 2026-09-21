@@ -1,11 +1,9 @@
 'use client';
-
 import Link from 'next/link';
 import { useEffect, useEffectEvent, useState } from 'react';
 import { ExternalLink, RefreshCw } from 'lucide-react';
 import { SettingsSection } from './SettingsSection';
 import type { AppReleaseEntry, AppUpdateResponse } from '@/lib/types/app-update';
-
 const DEFAULT_SOURCE = {
   repository: 'KuekHaoYang/KVideo',
   branch: 'main',
@@ -13,18 +11,14 @@ const DEFAULT_SOURCE = {
   changelogUrl: 'https://github.com/KuekHaoYang/KVideo/blob/main/CHANGELOG.md',
   repositoryUrl: 'https://github.com/KuekHaoYang/KVideo',
 };
-
 function formatDateLabel(value?: string) {
   if (!value) {
     return '未记录';
   }
-
   const parsed = new Date(value);
-
   if (Number.isNaN(parsed.getTime())) {
     return value;
   }
-
   return new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
     month: '2-digit',
@@ -33,7 +27,6 @@ function formatDateLabel(value?: string) {
     minute: '2-digit',
   }).format(parsed);
 }
-
 function getStatusMeta(data: AppUpdateResponse | null) {
   switch (data?.status) {
     case 'update-available':
@@ -65,7 +58,6 @@ function getStatusMeta(data: AppUpdateResponse | null) {
       };
   }
 }
-
 function ReleaseNotesBlock({
   title,
   release,
@@ -89,7 +81,6 @@ function ReleaseNotesBlock({
           )}
         </div>
       </div>
-
       {release ? (
         <ul className="mt-4 space-y-2">
           {release.notes.map((note) => (
@@ -103,17 +94,14 @@ function ReleaseNotesBlock({
     </div>
   );
 }
-
 export function AppVersionSettings() {
   const [data, setData] = useState<AppUpdateResponse | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
   const fetchUpdateInfo = useEffectEvent(async (manual: boolean = false) => {
     if (manual) {
       setIsRefreshing(true);
     }
-
     try {
       const response = await fetch('/api/app-update', {
         cache: 'no-store',
@@ -121,11 +109,9 @@ export function AppVersionSettings() {
           Accept: 'application/json',
         },
       });
-
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-
       const payload = (await response.json()) as AppUpdateResponse;
       setData(payload);
       setHasLoaded(true);
@@ -150,26 +136,22 @@ export function AppVersionSettings() {
       }
     }
   });
-
   useEffect(() => {
     void fetchUpdateInfo(false);
   }, []);
-
   const handleRefresh = () => {
     void fetchUpdateInfo(true);
   };
-
   const statusMeta = getStatusMeta(data);
   const currentRelease = data?.currentRelease ?? null;
   const latestRelease = data?.latestRelease ?? null;
   const shouldShowLatestRelease = Boolean(
     latestRelease && (!currentRelease || latestRelease.version !== currentRelease.version),
   );
-
   return (
     <SettingsSection
       title="版本与更新"
-      description="查看当前版本、最近更新内容，并手动检查 GitHub 上是否已有新版本。"
+      description="查看当前版本、最近更新内容，并手动检查是否已有新版本。"
       headerAction={
         <button
           type="button"
@@ -191,7 +173,6 @@ export function AppVersionSettings() {
               {currentRelease ? `${currentRelease.title} · ${currentRelease.publishedAt}` : '正在读取本地版本说明'}
             </p>
           </div>
-
           <div className="rounded-[var(--radius-2xl)] border border-[var(--glass-border)] bg-[color-mix(in_srgb,var(--bg-color)_55%,transparent)] p-4">
             <div className={`inline-flex rounded-[var(--radius-full)] border px-3 py-1 text-xs font-semibold ${statusMeta.tone}`}>
               {statusMeta.label}
@@ -202,44 +183,20 @@ export function AppVersionSettings() {
             </p>
           </div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--text-color-secondary)]">
-          <span>
-            检查来源：{data?.source.repository || 'KuekHaoYang/KVideo'} · {data?.source.branch || 'main'}
-          </span>
-          <Link
-            href={data?.source.changelogUrl || 'https://github.com/KuekHaoYang/KVideo/blob/main/CHANGELOG.md'}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-[var(--accent-color)] hover:underline"
-          >
-            查看更新日志
-            <ExternalLink size={12} />
-          </Link>
-          <Link
-            href={data?.source.repositoryUrl || 'https://github.com/KuekHaoYang/KVideo'}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-[var(--accent-color)] hover:underline"
-          >
-            查看仓库
-            <ExternalLink size={12} />
-          </Link>
-        </div>
-
-        <ReleaseNotesBlock
-          title="当前版本更新内容"
-          release={currentRelease}
-          emptyText="当前版本尚未记录更新内容。"
-        />
-
-        {shouldShowLatestRelease ? (
+        <div className="space-y-4">
           <ReleaseNotesBlock
-            title={`最新可用版本 ${latestRelease?.version}`}
-            release={latestRelease}
-            emptyText="最新版本尚未提供更新说明。"
+            title="当前版本更新内容"
+            release={currentRelease}
+            emptyText="当前版本尚未记录更新内容。"
           />
-        ) : null}
+          {shouldShowLatestRelease ? (
+            <ReleaseNotesBlock
+              title={`最新可用版本 ${latestRelease?.version}`}
+              release={latestRelease}
+              emptyText="最新版本尚未提供更新说明。"
+            />
+          ) : null}
+        </div>
       </div>
     </SettingsSection>
   );
